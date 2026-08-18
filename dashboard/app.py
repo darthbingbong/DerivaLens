@@ -1,186 +1,126 @@
-"""
-DerivaLens Dashboard - Main Application
+"""DerivaLens dashboard entry point.
 
-Modular Streamlit app that incrementally exposes functionality from each phase.
-This shell will be updated after each phase to add new pages while preserving existing ones.
-
-Architecture:
-- dashboard/app.py (main entry point, navigation)
-- dashboard/pages/ (individual phase pages)
-- dashboard/utils/ (UI helpers, formatting, styling)
-- dashboard/components/ (reusable Streamlit components)
-
-Each phase adds a new page without modifying existing ones.
+This app exposes the actual research functionality available in the project.
+The UI remains modular, but it is intentionally research-focused rather than
+being a project management tracker.
 """
 
-import streamlit as st
 from pathlib import Path
 import sys
 
-# Add project root to path
-project_root = Path(__file__).parent.parent
+import streamlit as st
+
+project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
-from dashboard.utils.theme import setup_theme, apply_custom_styling
-from dashboard.utils.navigation import NavigationManager
+from dashboard.utils.theme import apply_custom_styling, setup_theme
 from dashboard.utils.logging import setup_streamlit_logging
 
-# ============================================================================
-# Page Configuration
-# ============================================================================
-
 st.set_page_config(
-    page_title="DerivaLens - Futures & Options Research Engine",
+    page_title="DerivaLens",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded",
     menu_items={
-        "About": "# DerivaLens\nRegime-aware futures & options research and backtesting engine.\n\nBuilt as educational platform for Futures First internship.",
-        "Get Help": "https://github.com/derivalens/derivalens"
-    }
+        "About": "DerivaLens — quantitative derivatives research and backtesting.",
+        "Get Help": "https://github.com/derivalens/derivalens",
+    },
 )
-
-# ============================================================================
-# Setup
-# ============================================================================
 
 setup_theme()
 apply_custom_styling()
 setup_streamlit_logging()
 
-# ============================================================================
-# Sidebar Navigation
-# ============================================================================
-
-st.sidebar.title("🎯 DerivaLens")
+st.sidebar.title("DerivaLens")
+st.sidebar.caption("Quantitative derivatives research and backtesting")
 st.sidebar.markdown("---")
-st.sidebar.markdown("### Navigation")
 
-nav_manager = NavigationManager()
-
-# Phase indicators with completion status
-phase_sections = {
-    "Foundation": {
-        "Phase 1": ("📋 Architecture", "phase1_architecture", "✅"),
-        "Phase 2": ("📥 Data Pipeline", "phase2_data_pipeline", "✅"),
-    },
-    "Analysis": {
-        "Phase 3": ("📈 Futures Processing", "phase3_futures", "⏳"),
-        "Phase 4": ("📊 Options Processing", "phase4_options", "⏳"),
-        "Phase 5": ("📉 Volatility Analysis", "phase5_volatility", "⏳"),
-        "Phase 6": ("🔄 Regime Detection", "phase6_regimes", "⏳"),
-    },
-    "Strategy": {
-        "Phase 7": ("🎯 Strategies", "phase7_strategies", "⏳"),
-        "Phase 8": ("🧪 Backtesting", "phase8_backtesting", "⏳"),
-        "Phase 9": ("⚠️ Risk Analysis", "phase9_risk", "⏳"),
-        "Phase 10": ("🔁 Walk-Forward", "phase10_walkforward", "⏳"),
-    },
-    "Reporting": {
-        "Phase 11": ("📊 Statistics", "phase11_statistics", "⏳"),
-        "Phase 12": ("🎨 Dashboard", "phase12_dashboard", "⏳"),
-        "Phase 13": ("📄 Reports", "phase13_reports", "⏳"),
-        "Phase 14": ("✨ Polish", "phase14_polish", "⏳"),
-    }
+research_pages = {
+    "Market Overview": "market_overview",
+    "Futures Analytics": "futures_analytics",
+    "Options Analytics": "options_analytics",
+    "Volatility": "volatility",
+    "Market Regime": "market_regime",
+    "Strategy Lab": "strategy_lab",
+    "Backtesting": "backtesting",
+    "Risk Analysis": "risk_analysis",
+    "Research Report": "research_report",
 }
 
-# Build navigation sidebar
-current_page = None
-for section_name, phases in phase_sections.items():
-    with st.sidebar.expander(section_name, expanded=(section_name == "Foundation")):
-        for phase_name, (display_name, page_key, status) in phases.items():
-            col1, col2 = st.columns([0.9, 0.1])
-            with col1:
-                if st.button(display_name, key=f"btn_{page_key}", use_container_width=True):
-                    st.session_state.current_page = page_key
-            with col2:
-                st.caption(status)
+system_pages = {
+    "Data Status": "data_status",
+    "Development Progress": "development_progress",
+}
 
-# Get current page from session state
 if "current_page" not in st.session_state:
-    st.session_state.current_page = "phase1_architecture"
+    st.session_state.current_page = "market_overview"
+
+with st.sidebar.expander("Research", expanded=True):
+    for label, page_key in research_pages.items():
+        if st.button(label, key=f"nav_{page_key}", use_container_width=True):
+            st.session_state.current_page = page_key
+
+with st.sidebar.expander("System", expanded=False):
+    for label, page_key in system_pages.items():
+        if st.button(label, key=f"sys_{page_key}", use_container_width=True):
+            st.session_state.current_page = page_key
+
+st.sidebar.markdown("---")
+with st.sidebar.expander("Project status", expanded=False):
+    st.caption("Current product scope: Phase 2 market-data features only.")
+    st.caption("Not a project roadmap view.")
 
 current_page = st.session_state.current_page
 
-# ============================================================================
-# Project Info Sidebar
-# ============================================================================
+page_map = {
+    "market_overview": "dashboard.pages.market_overview",
+    "data_status": "dashboard.pages.data_status",
+    "development_progress": "dashboard.pages.development_progress",
+    "futures_analytics": "dashboard.pages.not_implemented",
+    "options_analytics": "dashboard.pages.not_implemented",
+    "volatility": "dashboard.pages.not_implemented",
+    "market_regime": "dashboard.pages.not_implemented",
+    "strategy_lab": "dashboard.pages.not_implemented",
+    "backtesting": "dashboard.pages.not_implemented",
+    "risk_analysis": "dashboard.pages.not_implemented",
+    "research_report": "dashboard.pages.not_implemented",
+}
 
-st.sidebar.markdown("---")
-with st.sidebar.expander("ℹ️ About Project", expanded=False):
-    st.markdown("""
-    **DerivaLens** is a regime-aware futures & options research and backtesting engine.
-    
-    **Vision**: Educational platform demonstrating:
-    - When and why strategies work in different market regimes
-    - Robust data pipelines and quality assurance
-    - Quantitative research workflows
-    - Professional backtesting practices
-    
-    **Status**: Phase 2 Complete ✅
-    - Phase 1: Architecture & Configuration
-    - Phase 2: Data Validation & Cleaning
-    - Phases 3-14: In development
-    """)
+if current_page in page_map:
+    module_name = page_map[current_page]
+    module = __import__(module_name, fromlist=["render"])
 
-st.sidebar.markdown("---")
-with st.sidebar.expander("📚 Quick Links", expanded=False):
-    st.markdown("""
-    - [GitHub Repository](https://github.com/derivalens)
-    - [Documentation](../README.md)
-    - [Development Roadmap](../DEVELOPMENT.md)
-    - [Phase 1 Summary](../PHASE1_COMPLETE.md)
-    - [Phase 2 Summary](../PHASE2_COMPLETE.md)
-    """)
-
-# ============================================================================
-# Page Content
-# ============================================================================
-
-# Import pages dynamically
-if current_page == "phase1_architecture":
-    from dashboard.pages import phase1_architecture
-    phase1_architecture.render()
-    
-elif current_page == "phase2_data_pipeline":
-    from dashboard.pages import phase2_data_pipeline
-    phase2_data_pipeline.render()
-
+    if current_page == "futures_analytics":
+        module.render("Futures Analytics", "Futures analytics will be enabled after Phase 3.")
+    elif current_page == "options_analytics":
+        module.render("Options Analytics", "Options analytics will be enabled after Phase 4.")
+    elif current_page == "volatility":
+        module.render("Volatility", "Volatility analytics will be enabled after Phase 5.")
+    elif current_page == "market_regime":
+        module.render("Market Regime", "Regime detection will be enabled after Phase 6.")
+    elif current_page == "strategy_lab":
+        module.render("Strategy Lab", "Strategy research will be enabled after the strategy modules are implemented.")
+    elif current_page == "backtesting":
+        module.render("Backtesting", "Backtesting will be enabled after the backtesting engine is implemented.")
+    elif current_page == "risk_analysis":
+        module.render("Risk Analysis", "Risk analytics will be enabled after the risk engine is implemented.")
+    elif current_page == "research_report":
+        module.render("Research Report", "Research reporting will be enabled after the research pipeline is implemented.")
+    elif current_page == "data_status":
+        module.render_data_status()
+    elif current_page == "development_progress":
+        module.render_progress()
+    else:
+        module.render()
 else:
-    # Phase not yet implemented
-    st.title(f"🚀 Coming Soon")
-    st.info("""
-    This phase is not yet implemented. Check back after the next development cycle!
-    
-    **Current Progress**: Phase 2 ✅  
-    **Next**: Phase 3 - Futures Data Processing
-    """)
-    
-    # Show roadmap
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown("""
-        ### Completed Phases
-        - ✅ **Phase 1**: Project architecture and configuration
-        - ✅ **Phase 2**: Data ingestion, validation, and cleaning
-        """)
-    with col2:
-        st.markdown("""
-        ### Upcoming Phases
-        - ⏳ **Phase 3**: Futures-specific analysis
-        - ⏳ **Phase 4**: Options chain processing
-        - ⏳ ... 14 phases total
-        """)
-
-# ============================================================================
-# Footer
-# ============================================================================
+    st.title("DerivaLens")
+    st.info("No page selected.")
 
 st.markdown("---")
 col1, col2, col3 = st.columns(3)
 with col1:
-    st.caption("🎓 Built as educational project for Futures First internship")
+    st.caption("Research interface")
 with col2:
-    st.caption("📊 Regime-aware research platform")
+    st.caption("Phase 2: market data")
 with col3:
-    st.caption("v0.2 (Phase 2 Complete)")
+    st.caption("Data-first workflow")
