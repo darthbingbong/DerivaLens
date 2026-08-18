@@ -1,0 +1,180 @@
+# Main configuration file for DerivaLens
+# This file defines project-wide settings, paths, and hyperparameters
+
+project:
+  name: DerivaLens
+  version: 0.1.0
+  description: "Regime-Aware Futures & Options Research and Backtesting Engine"
+  debug: false
+
+# Data configuration
+data:
+  # Raw data directory
+  raw_dir: "./data/raw"
+  processed_dir: "./data/processed"
+  features_dir: "./data/features"
+  synthetic_dir: "./data/synthetic"
+  
+  # Data quality thresholds
+  missing_value_tolerance: 0.05  # Warn if > 5% missing
+  outlier_std_threshold: 5.0      # Flag as outlier if > 5 std dev
+  
+  # Validation
+  validate_prices: true
+  validate_expiry: true
+  validate_duplicates: true
+
+# Instruments configuration
+instruments:
+  primary: "NIFTY"
+  
+  # Futures configuration
+  futures:
+    tick_size: 5.0        # Points per tick
+    lot_size: 75          # Contracts per lot
+    brokerage_bps: 1.0    # Basis points
+    exchange: "NSE"
+  
+  # Options configuration
+  options:
+    tick_size: 0.05       # Rupees per tick
+    lot_size: 100         # Contracts per lot
+    brokerage_bps: 2.0    # Basis points
+    exchange: "NSE"
+    style: "European"     # European vs American
+  
+  # Risk-free rate
+  risk_free_rate: 0.05
+
+# Backtesting configuration
+backtesting:
+  # Initial capital
+  initial_capital: 1_000_000  # 1 million rupees
+  
+  # Transaction costs
+  slippage_bps: 2.0           # 2 basis points
+  commission_bps: 1.0         # 1 basis point
+  market_impact: false        # Include market impact
+  
+  # Execution
+  execution_type: "daily_open"  # or "eod_close"
+  
+  # Position sizing
+  position_sizing_method: "fixed_fraction"  # fixed_fraction or vol_based
+  risk_per_trade_pct: 2.0                   # 2% of capital per trade
+  
+  # Risk limits
+  max_leverage: 2.0                # Max portfolio leverage
+  max_position_size_pct: 10.0      # Max single position
+  max_daily_loss_pct: 5.0          # Stop trading if daily loss > 5%
+
+# Regime classification
+regimes:
+  num_regimes: 4
+  features:
+    - realized_volatility
+    - iv_percentile
+    - basis_zscore
+    - momentum
+    - put_call_ratio
+  
+  # Rule-based regimes (if not using ML)
+  rules:
+    low_vol_threshold: 15.0   # % annualized
+    high_vol_threshold: 30.0
+    momentum_threshold: 0.02  # 2% move
+    atr_periods: 14
+
+# Strategy configuration
+strategies:
+  # Global strategy parameters
+  lookback_period: 252  # 1 year
+  
+  # Momentum strategy
+  futures_momentum:
+    enabled: true
+    fast_ma: 20
+    slow_ma: 50
+    entry_threshold: 0.01  # 1% above slow MA
+    stop_loss_pct: 2.0
+  
+  # IV/RV strategy
+  iv_rv:
+    enabled: true
+    iv_lookback: 30
+    rv_lookback: 20
+    entry_threshold: 1.5  # 1.5 std dev from mean
+    position_type: "straddle"  # or "strangle"
+  
+  # Skew strategy
+  options_skew:
+    enabled: true
+    skew_percentile_threshold: 0.1  # Bottom 10%
+    min_time_to_expiry: 7  # days
+  
+  # Basis convergence
+  basis_convergence:
+    enabled: true
+    zscore_threshold: 2.0  # 2 std dev
+    min_days_to_expiry: 14
+  
+  # Event volatility
+  event_volatility:
+    enabled: true
+    iv_sensitivity: true
+    post_event_window: 5  # days
+
+# Volatility calculation
+volatility:
+  # Realized volatility
+  rv_windows: [5, 10, 20, 60]  # days
+  rv_method: "close_to_close"    # or "parkinson", "garman_klass"
+  
+  # Implied volatility
+  iv_solver: "brent"             # or "newton"
+  iv_iterations: 100
+  iv_tolerance: 1e-6
+
+# Regime detection (ML classifier)
+classifier:
+  model_type: "random_forest"  # or "xgboost", "logistic_regression"
+  test_size: 0.2
+  random_state: 42
+  
+  # Random Forest
+  random_forest:
+    n_estimators: 100
+    max_depth: 10
+    min_samples_split: 20
+    min_samples_leaf: 10
+
+# Logging
+logging:
+  level: "INFO"
+  dir: "./logs"
+  file_format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# Research
+research:
+  # Walk-forward validation
+  train_size: 3  # years
+  validate_size: 1  # year
+  test_size: 1  # year
+  
+  # Statistical testing
+  significance_level: 0.05
+  bootstrap_iterations: 1000
+  
+  # Robustness
+  cost_scenarios: ["low", "base", "high"]
+  cost_low_bps: 0.5
+  cost_high_bps: 3.0
+
+# Dashboard (Streamlit)
+dashboard:
+  theme: "light"
+  page_icon: "📊"
+  initial_sidebar_state: "expanded"
+  
+  # Caching
+  cache_ttl: 3600  # 1 hour

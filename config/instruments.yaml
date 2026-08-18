@@ -1,0 +1,94 @@
+# Instrument definitions for DerivaLens
+# This file defines the financial instruments the system can work with
+
+instruments:
+  # NIFTY 50 Index
+  NIFTY:
+    name: "NIFTY 50"
+    exchange: "NSE"
+    type: "index"
+    currency: "INR"
+    
+    spot:
+      ticker: "^NSEI"  # Yahoo Finance ticker
+      multiplier: 1.0
+    
+    futures:
+      # Most liquid contract
+      expiry_format: "YYYYMMDD"
+      contract_code: "NIFTY"
+      multiplier: 75  # Each point = 75 rupees
+      tick_size: 5.0
+      lot_size: 1
+      
+      # Typical roll schedule
+      near_month: "month_end"
+      far_month: "next_month_end"
+    
+    options:
+      # Standard options specifications
+      contract_code: "NIFTY"
+      multiplier: 100  # Each option covers 100 units
+      tick_size: 0.05
+      style: "European"
+      
+      # Strike specifications
+      strike_spacing: 100  # Points between strikes
+      min_moneyness: 0.80  # 80% of current price
+      max_moneyness: 1.20  # 120% of current price
+      
+      # Typical expiries
+      expirations:
+        - "weekly_thursday"
+        - "monthly_last_thursday"
+    
+    characteristics:
+      volatility_regime: "moderate"
+      typical_spread_bps: 2
+      typical_volume: "very_high"
+  
+  # BANKNIFTY (if added later)
+  BANKNIFTY:
+    name: "NIFTY Bank Index"
+    exchange: "NSE"
+    type: "index"
+    currency: "INR"
+    enabled: false  # Not included in initial phase
+    
+    spot:
+      ticker: "^NSEBANK"
+    
+    futures:
+      contract_code: "BANKNIFTY"
+      multiplier: 15
+      tick_size: 5.0
+      lot_size: 1
+    
+    options:
+      contract_code: "BANKNIFTY"
+      multiplier: 100
+      tick_size: 0.05
+      style: "European"
+  
+  # S&P 500 (if added later)
+  SPX:
+    name: "S&P 500 Index"
+    exchange: "CME"
+    type: "index"
+    currency: "USD"
+    enabled: false  # Not included in initial phase
+    
+    spot:
+      ticker: "^GSPC"
+    
+    futures:
+      contract_code: "ES"  # E-mini S&P 500
+      multiplier: 50
+      tick_size: 0.25
+      lot_size: 1
+    
+    options:
+      contract_code: "SPX"
+      multiplier: 100
+      tick_size: 0.05
+      style: "European"
